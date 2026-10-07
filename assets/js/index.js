@@ -13,7 +13,36 @@ const apodDateDetail = document.getElementById("apod-date-detail");
 const apodExplanation = document.getElementById("apod-explanation");
 const apodDateInfo = document.getElementById("apod-date-info");
 const apodMediaType = document.getElementById("apod-media-type");
-
+const planetsCards = document.querySelectorAll(".planet-card");
+const planetDetailImage = document.getElementById("planet-detail-image");
+const planetDetailName = document.getElementById("planet-detail-name");
+const planetDetailDescription = document.getElementById(
+  "planet-detail-description",
+);
+const planetDetailDistance = document.getElementById("planet-distance");
+const planetDetailRadius = document.getElementById("planet-radius");
+const planetDetailMass = document.getElementById("planet-mass");
+const planetDetailDensity = document.getElementById("planet-density");
+const planetDetailOrbitalPeriod = document.getElementById(
+  "planet-orbital-period",
+);
+const planetDetailRotation = document.getElementById("planet-rotation");
+const planetDetailMoons = document.getElementById("planet-moons");
+const planetDetailGravity = document.getElementById("planet-gravity");
+const planetDetailDiscoverer = document.getElementById("planet-discoverer");
+const planetDetailDiscoveryDate = document.getElementById(
+  "planet-discovery-date",
+);
+const planetDetailBodyType = document.getElementById("planet-body-type");
+const planetDetailVolume = document.getElementById("planet-volume");
+const planetPerihelion = document.getElementById("planet-perihelion");
+const planetAphelion = document.getElementById("planet-aphelion");
+const planetEccentricity = document.getElementById("planet-eccentricity");
+const planetInclination = document.getElementById("planet-inclination");
+const planetAxialTilt = document.getElementById("planet-axial-tilt");
+const planetTemp = document.getElementById("planet-temp");
+const planetEscape = document.getElementById("planet-escape");
+const planetFacts = document.querySelectorAll("#planet-facts li span");
 async function todayNews(today = "notToday") {
   apodLoading.classList.remove("hidden");
   apodImg.classList.add("hidden");
@@ -57,6 +86,74 @@ async function todayNews(today = "notToday") {
     apodDateDetail.innerHTML = formattedDate;
     apodDateInfo.innerHTML = formattedDate;
     apodMediaType.innerHTML = data.media_type;
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+async function getPlanet(planetName) {
+  try {
+    const res = await fetch(
+      `https://solar-system-opendata-proxy.vercel.app/api/planets`,
+    );
+    if (!res.ok) {
+      throw new Error(`HTTP error: ${res.status}`);
+    }
+
+    const data = await res.json();
+    const planets = data.bodies;
+    const planet = planets.find(
+      (planet) => planet.englishName.toLowerCase() === planetName,
+    );
+    planetDetailName.innerHTML = planet.englishName;
+    planetDetailImage.src = planet.image;
+    planetDetailDescription.innerHTML = planet.description;
+
+    planetDetailDistance.innerHTML = `${planet.semimajorAxis.toLocaleString()} km`;
+
+    planetDetailRadius.innerHTML = `${planet.meanRadius.toLocaleString()} km`;
+
+    planetDetailMass.innerHTML = `${planet.mass.massValue} × 10^${planet.mass.massExponent} kg`;
+
+    planetDetailDensity.innerHTML = `${planet.density} g/cm³`;
+
+    planetDetailOrbitalPeriod.innerHTML = `${planet.sideralOrbit.toLocaleString()} days`;
+
+    planetDetailRotation.innerHTML = `${planet.sideralRotation} hours`;
+
+    planetDetailMoons.innerHTML = planet.moons ? planet.moons.length : 0;
+
+    planetDetailGravity.innerHTML = `${planet.gravity} m/s²`;
+
+    planetDetailDiscoverer.innerHTML =
+      planet.discoveredBy || "Known since antiquity";
+
+    planetDetailDiscoveryDate.innerHTML = planet.discoveryDate || "Ancient";
+
+    planetDetailBodyType.innerHTML = planet.bodyType;
+
+    planetDetailVolume.innerHTML = `${planet.vol.volValue} × 10^${planet.vol.volExponent} km³`;
+
+    planetPerihelion.innerHTML = `${planet.perihelion.toLocaleString()} km`;
+
+    planetAphelion.innerHTML = `${planet.aphelion.toLocaleString()} km`;
+
+    planetEccentricity.innerHTML = planet.eccentricity;
+
+    planetInclination.innerHTML = `${planet.inclination}°`;
+
+    planetAxialTilt.innerHTML = `${planet.axialTilt}°`;
+
+    planetTemp.innerHTML = `${(planet.avgTemp - 273.15).toFixed(0)}°C`;
+
+    planetEscape.innerHTML = `${(planet.escape / 1000).toFixed(2)} km/s`;
+
+    planetFacts[0].innerHTML = `Mass: ${planet.mass.massValue} × 10^${planet.mass.massExponent} kg`;
+
+    planetFacts[1].innerHTML = `Surface gravity: ${planet.gravity} m/s²`;
+
+    planetFacts[2].innerHTML = `Density: ${planet.density} g/cm³`;
+
+    planetFacts[3].innerHTML = `Axial tilt: ${planet.axialTilt}°`;
   } catch (error) {
     console.log(error.message);
   }
@@ -108,6 +205,11 @@ todayApodBtn.addEventListener("click", () => {
   todayNews("today");
 
   apodDateInputSpan.innerHTML = "Loading...";
+});
+planetsCards.forEach((card) => {
+  card.addEventListener("click", (e) => {
+    getPlanet(e.currentTarget.dataset.planetId);
+  });
 });
 
 todayNews("today");
