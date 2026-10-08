@@ -43,6 +43,7 @@ const planetAxialTilt = document.getElementById("planet-axial-tilt");
 const planetTemp = document.getElementById("planet-temp");
 const planetEscape = document.getElementById("planet-escape");
 const planetFacts = document.querySelectorAll("#planet-facts li span");
+const featuredLaunch = document.getElementById("featured-launch");
 async function todayNews(today = "notToday") {
   apodLoading.classList.remove("hidden");
   apodImg.classList.add("hidden");
@@ -158,6 +159,195 @@ async function getPlanet(planetName) {
     console.log(error.message);
   }
 }
+async function launches() {
+  try {
+    const res = await fetch(
+      "https://lldev.thespacedevs.com/2.3.0/launches/upcoming/?limit=10",
+    );
+
+    if (!res.ok) {
+      throw new Error(`HTTP error: ${res.status}`);
+    }
+
+    const data = await res.json();
+    const featuredLaunchData = data.results[0];
+    const upcomingLunchData = data.results.slice(1);
+    console.log(data);
+
+    featuredLaunchShowHandle(featuredLaunchData);
+    upcomingLunchShowHandle(upcomingLunchData);
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
+function featuredLaunchShowHandle(launch) {
+  const placeholder = `
+                    <div
+                      class="flex items-center justify-center h-full min-h-[400px] bg-slate-800"
+                    >
+                      <i class="fas fa-rocket text-9xl text-slate-700/50"></i>
+                    </div>
+`;
+
+  const date = new Date(launch.net);
+  const now = new Date();
+  const diff = date - now;
+  const daysLeft = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  const launchDate = new Date(launch.net).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  const launchTime = new Date(launch.net).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "UTC",
+  });
+  featuredLaunch.innerHTML = `
+                <div
+              class="relative bg-slate-800/30 border border-slate-700 rounded-3xl overflow-hidden group hover:border-blue-500/50 transition-all"
+            >
+              <div
+                class="absolute inset-0 bg-linear-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
+              ></div>
+              <div class="relative grid grid-cols-1 lg:grid-cols-2 gap-6 p-8">
+                <div class="flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center gap-3 mb-4">
+                      <span
+                        class="px-4 py-1.5 bg-blue-500/20 text-blue-400 rounded-full text-sm font-semibold flex items-center gap-2"
+                      >
+                        <i class="fas fa-star"></i>
+                        Featured Launch
+                      </span>
+                      <span
+                        class="px-4 py-1.5 bg-green-500/20 text-green-400 rounded-full text-sm font-semibold"
+                      >
+                        ${launch.status.abbrev}
+                      </span>
+                    </div>
+                    <h3 class="text-3xl font-bold mb-3 leading-tight">
+                      ${launch.name}
+                    </h3>
+                    <div
+                      class="flex flex-col xl:flex-row xl:items-center gap-4 mb-6 text-slate-400"
+                    >
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-building"></i>
+                        <span>${launch.launch_service_provider.name}</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-rocket"></i>
+                        <span>${launch.name.split("|")[0]}</span>
+                      </div>
+                    </div>
+                    <div
+                      class="inline-flex items-center gap-3 px-6 py-3 bg-linear-to-r from-blue-500/20 to-purple-500/20 rounded-xl mb-6"
+                    >
+                      <i class="fas fa-clock text-2xl text-blue-400"></i>
+                      <div>
+                        <p class="text-2xl font-bold text-blue-400">${daysLeft}</p>
+                        <p class="text-xs text-slate-400">Days Until Launch</p>
+                      </div>
+                    </div>
+                    <div class="grid xl:grid-cols-2 gap-4 mb-6">
+                      <div class="bg-slate-900/50 rounded-xl p-4">
+                        <p
+                          class="text-xs text-slate-400 mb-1 flex items-center gap-2"
+                        >
+                          <i class="fas fa-calendar"></i>
+                          Launch Date
+                        </p>
+                        <p class="font-semibold">${launchDate}</p>
+                      </div>
+                      <div class="bg-slate-900/50 rounded-xl p-4">
+                        <p
+                          class="text-xs text-slate-400 mb-1 flex items-center gap-2"
+                        >
+                          <i class="fas fa-clock"></i>
+                          Launch Time
+                        </p>
+                        <p class="font-semibold">${launchTime} UTC</p>
+                      </div>
+                      <div class="bg-slate-900/50 rounded-xl p-4">
+                        <p
+                          class="text-xs text-slate-400 mb-1 flex items-center gap-2"
+                        >
+                          <i class="fas fa-map-marker-alt"></i>
+                          Location
+                        </p>
+                        <p class="font-semibold text-sm">${launch.pad.location.name}</p>
+                      </div>
+                      <div class="bg-slate-900/50 rounded-xl p-4">
+                        <p
+                          class="text-xs text-slate-400 mb-1 flex items-center gap-2"
+                        >
+                          <i class="fas fa-globe"></i>
+                          Country
+                        </p>
+                        <p class="font-semibold">${launch.pad.country.name}</p>
+                      </div>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed mb-6">
+                      ${launch.mission.description}
+                    </p>
+                  </div>
+                  <div class="flex flex-col md:flex-row gap-3">
+                    <button
+                      class="flex-1 self-start md:self-center px-6 py-3 bg-blue-500 rounded-xl hover:bg-blue-600 transition-colors font-semibold flex items-center justify-center gap-2"
+                    >
+                      <i class="fas fa-info-circle"></i>
+                      View Full Details
+                    </button>
+                    <div class="icons self-end md:self-center">
+                      <button
+                        class="px-4 py-3 bg-slate-700 rounded-xl hover:bg-slate-600 transition-colors"
+                      >
+                        <i class="far fa-heart"></i>
+                      </button>
+                      <button
+                        class="px-4 py-3 bg-slate-700 rounded-xl hover:bg-slate-600 transition-colors"
+                      >
+                        <i class="fas fa-bell"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="relative">
+                  <div
+                    id="featured-launch-image-container"
+                    class="relative h-full min-h-[400px] rounded-2xl overflow-hidden bg-slate-900/50"
+                  >
+                      <img
+                        id="featured-launch-image"
+                        src="${launch.image?.image_url || ""}"
+                        alt="${launch.name}"
+                        class="w-full h-full object-cover"
+                      />
+                    <div
+                      class="absolute inset-0 bg-linear-to-t from-slate-900 via-transparent to-transparent"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+    `;
+  const imageContainer = document.getElementById(
+    "featured-launch-image-container",
+  );
+  const image = document.getElementById("featured-launch-image");
+  image.onerror = () => {
+    imageContainer.innerHTML = placeholder;
+  };
+
+  if (!launch.image?.image_url) {
+    imageContainer.innerHTML = placeholder;
+  }
+}
 
 navLinks.forEach((link) => {
   link.addEventListener("click", (e) => {
@@ -213,3 +403,5 @@ planetsCards.forEach((card) => {
 });
 
 todayNews("today");
+
+launches();
