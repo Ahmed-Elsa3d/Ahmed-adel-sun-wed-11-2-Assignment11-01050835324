@@ -44,6 +44,7 @@ const planetTemp = document.getElementById("planet-temp");
 const planetEscape = document.getElementById("planet-escape");
 const planetFacts = document.querySelectorAll("#planet-facts li span");
 const featuredLaunch = document.getElementById("featured-launch");
+const upcomingLaunchsGrid = document.getElementById("launches-grid");
 async function todayNews(today = "notToday") {
   apodLoading.classList.remove("hidden");
   apodImg.classList.add("hidden");
@@ -172,7 +173,6 @@ async function launches() {
     const data = await res.json();
     const featuredLaunchData = data.results[0];
     const upcomingLunchData = data.results.slice(1);
-    console.log(data);
 
     featuredLaunchShowHandle(featuredLaunchData);
     upcomingLunchShowHandle(upcomingLunchData);
@@ -347,6 +347,101 @@ function featuredLaunchShowHandle(launch) {
   if (!launch.image?.image_url) {
     imageContainer.innerHTML = placeholder;
   }
+}
+function upcomingLunchShowHandle(launches) {
+  const placeholder = `<i class="fas fa-space-shuttle text-5xl text-slate-700"></i>`;
+  let temp = "";
+  launches.forEach((launch) => {
+    const launchDate = new Date(launch.net).toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+    const launchTime = new Date(launch.net).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "UTC",
+    });
+
+    temp += `
+                <div
+              class="bg-slate-800/50 border border-slate-700 rounded-2xl overflow-hidden hover:border-blue-500/30 transition-all group cursor-pointer"
+            >
+              <div
+                class="relative h-48 bg-slate-900/50 flex items-center justify-center"
+              >
+              ${
+                launch.image?.image_url
+                  ? `
+                                      <img
+                        src="${launch.image.image_url}"
+                        alt="${launch.name}"
+                        class="w-full h-full object-cover"
+                        onerror = "this.outerHTML = '<i class=&quot;fas fa-space-shuttle text-5xl text-slate-700&quot;></i>'"
+                      />
+                `
+                  : placeholder
+              }
+
+                <div class="absolute top-3 right-3">
+                  <span
+                    class="px-3 py-1 bg-green-500/90 text-white backdrop-blur-sm rounded-full text-xs font-semibold"
+                  >
+                                            ${launch.status.abbrev}
+                  </span>
+                </div>
+              </div>
+              <div class="p-5">
+                <div class="mb-3">
+                  <h4
+                    class="font-bold text-lg mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors"
+                  >
+                      ${launch.name}
+                  </h4>
+                  <p class="text-sm text-slate-400 flex items-center gap-2">
+                    <i class="fas fa-building text-xs"></i>
+                    SpaceX
+                  </p>
+                </div>
+                <div class="space-y-2 mb-4">
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="fas fa-calendar text-slate-500 w-4"></i>
+                    <span class="text-slate-300">${launchDate}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="fas fa-clock text-slate-500 w-4"></i>
+                    <span class="text-slate-300">${launchTime} UTC</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="fas fa-rocket text-slate-500 w-4"></i>
+                    <span class="text-slate-300">${launch.name.split("|")[0]}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="fas fa-map-marker-alt text-slate-500 w-4"></i>
+                    <span class="text-slate-300 line-clamp-1">${launch.pad.location.name}</span>
+                  </div>
+                </div>
+                <div
+                  class="flex items-center gap-2 pt-4 border-t border-slate-700"
+                >
+                  <button
+                    class="flex-1 px-4 py-2 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors text-sm font-semibold"
+                  >
+                    Details
+                  </button>
+                  <button
+                    class="px-3 py-2 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
+                  >
+                    <i class="far fa-heart"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+    `;
+  });
+  upcomingLaunchsGrid.innerHTML = temp;
 }
 
 navLinks.forEach((link) => {
